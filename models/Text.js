@@ -8,6 +8,10 @@ var TextSchema = mongoose.Schema({
     custom_url:{ type: String, unique:true },
 },{ timestamps: true })
 
+TextSchema.methods.checkURLexists = function (paramsurl,cb) {
+    return this.model('Text').findOne({$or:[ {custom_url:paramsurl}, {url:paramsurl} ]}, cb)
+}
+
 var Text = mongoose.model('Text', TextSchema)
 
 module.exports = Text

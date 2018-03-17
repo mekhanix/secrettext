@@ -54,7 +54,13 @@ router.post('/', function (req, res, next) {
 
 router.get('/:url', function (req, res, next) {
     Text.findOne({$or:[ {custom_url:req.params.url}, {url:req.params.url} ]}, function (err, text) {
-        let activeUrl = text.custom_url !== '' ? text.custom_url : text.url
+        if (text != null) {
+            var activeUrl = text.custom_url !== '' ? text.custom_url : text.url
+        }
+        else {
+            res.status(404).render('error', {message:'Not Found'})
+            return
+        }
 
         if (err) { throw new Error(err) }
         if (!req.session || !req.session.auth) {
@@ -70,7 +76,8 @@ router.get('/:url', function (req, res, next) {
 })
 
 router.post('/:url/auth', function (req, res, next) {
-    Text.findOne({$or:[ {custom_url:req.params.url}, {url:req.params.url} ]}, function (err, text) {
+    var text = new Text()
+    text.checkURLexists(req.params.url, function (err, text) {
         bcrypt.compare(req.body.pass, text.pass, function(err, result) {
             if (result) {
                 req.session.auth = true
@@ -84,7 +91,16 @@ router.post('/:url/auth', function (req, res, next) {
 })
 
 router.get('/:url/auth', function (req, res, next) {
-    res.render('show_pass', {url:req.params.url})
+    var text = new Text()
+    text.checkURLexists(req.params.url, function (err, text) {
+        if (text !== null) {
+            res.render('show_pass', {url:req.params.url})            
+        }
+        else {
+            res.status(404).render('error', {message:'Not Found'})
+            return
+        }
+    })
 })
 
 function unique_url() {
