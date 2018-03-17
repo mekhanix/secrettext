@@ -1,0 +1,36 @@
+{{#if errors}}
+{{#each errors}}
+    <div class="alert alert-danger">
+  <strong>{{msg}}</strong>
+    </div>
+{{/each}}
+{{/if}}
+<div class="container" >
+    <form action="/secret" method="post">
+    <div class="form-group">
+        <label for="text">Your Secret Text</label>
+        <textarea class="form-control" name="text" rows="3"></textarea>
+    </div>
+    <div class="form-group">
+        <label for="custom_url">Custom URL</label>
+        <input class="form-control" type="text" name="custom_url" placeholder="optional">
+    </div>
+    <div class="form-group">
+        <label for="pass">Secret passphrase</label>
+        <input class="form-control" type="password" name="pass">
+    </div>
+    <div class="form-group">
+        <label for="destroy">Self Destroy at :</label>
+        <select name="destroy" class="form-control">
+            <option value="never">Never</option>
+            <option value="hourly">1 Hour</option>
+            <option value="hourtwelve">12 Hours</option>
+            <option value="daily">1 Day</option>
+            <option value="weekly">1 Week</option>
+        </select>
+    </div>
+    <div class="form-group">
+        <input type="submit" value="Create Secret Text" class="btn btn-default">
+    </div>
+</form>
+</div>
