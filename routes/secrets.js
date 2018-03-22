@@ -20,11 +20,11 @@ router.post('/', function (req, res, next) {
                 return
             }
             else {
-                bcrypt.hash(req.body.pass, 10, function(err, hash) {
+                bcrypt.hash(req.body.pass, 10, function(err, hash) {                
                     var newText = new Text({
-                        text:req.body.text,
-                        custom_url:req.body.custom_url,
-                        pass:hash,
+                        text: req.body.text,
+                        custom_url: req.body.custom_url,
+                        pass: hash,
                         url:unique_url()
                     })
                     newText.save(function (err, newtext) {
@@ -63,13 +63,10 @@ router.get('/:url', function (req, res, next) {
         }
 
         if (err) { throw new Error(err) }
-        if (!req.session || !req.session.auth) {
+        if (!req.session.auth || req.session.auth.url !== req.params.url) {
             return res.redirect(`./${activeUrl}/auth`)
         }
         else {
-            if (req.query.auth === 'true') {
-                req.session = null
-            }
             res.render('show', {payload:text})
         }
     })
@@ -80,7 +77,7 @@ router.post('/:url/auth', function (req, res, next) {
     text.checkURLexists(req.params.url, function (err, text) {
         bcrypt.compare(req.body.pass, text.pass, function(err, result) {
             if (result) {
-                req.session.auth = true
+                req.session.auth = {url : req.params.url, ip : req.ip}
                 return res.redirect(`/secret/${req.params.url}?auth=true`)
             }
             else {
