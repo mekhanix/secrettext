@@ -47,9 +47,6 @@ router.post('/', function (req, res, next) {
             }
         })
         .catch((err)=>{throw err})
-
-
-
 })
 
 router.get('/:url', function (req, res, next) {
@@ -67,14 +64,18 @@ router.get('/:url', function (req, res, next) {
             return res.redirect(`./${activeUrl}/auth`)
         }
         else {
+            if (req.query.edit === 'true') {
+                let errors = req.session.errors
+                req.session.errors = null
+                res.render('show_edit', {payload:text, url:req.params.url, errors })
+            }
             res.render('show', {payload:text})
         }
     })
 })
 
 router.post('/:url/auth', function (req, res, next) {
-    var text = new Text()
-    text.checkURLexists(req.params.url, function (err, text) {
+    Text.checkURLexists(req.params.url, function (err, text) {
         bcrypt.compare(req.body.pass, text.pass, function(err, result) {
             if (result) {
                 req.session.auth = {url : req.params.url, ip : req.ip}
@@ -88,8 +89,8 @@ router.post('/:url/auth', function (req, res, next) {
 })
 
 router.get('/:url/auth', function (req, res, next) {
-    var text = new Text()
-    text.checkURLexists(req.params.url, function (err, text) {
+    // var text = new 
+    Text.checkURLexists(req.params.url, function (err, text) {
         if (text !== null) {
             res.render('show_pass', {url:req.params.url})            
         }
@@ -98,6 +99,23 @@ router.get('/:url/auth', function (req, res, next) {
             return
         }
     })
+})
+
+// save edited text
+router.post('/:url/save', function (req, res, next) {
+    req.checkBody('text','oops..something went wrong with your text :(').isLength({min:1, max:10001})
+    var errors = req.validationErrors()
+    if (errors) {
+        req.session.errors = errors
+        res.redirect(`/secret/${req.params.url}?edit=true`)
+        return
+    } 
+    else {
+        Text.findByURLandSave(req.params.url, req.body.text)
+            .then(()=>{
+                res.redirect(`/secret/${req.params.url}`)
+            })
+    }
 })
 
 function unique_url() {
