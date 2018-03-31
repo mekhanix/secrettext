@@ -6,9 +6,9 @@ module.exports = function (req) {
     req.checkBody('custom_url', 'oops..that url is already taken, try something else')
         .custom((value)=>{
             return new Promise(function (resolve, reject) {
-                Text.findOne({custom_url:value, $not:[{custom_url:''}]},(err, res)=>{
+                Text.findOne({custom_url:value},(err, res)=>{
                     res ? reject() : resolve()
-                })           
+                })
             })
         })
 }
