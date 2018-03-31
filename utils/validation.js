@@ -7,7 +7,7 @@ module.exports = function (req) {
         .custom((value)=>{
             return new Promise(function (resolve, reject) {
                 Text.findOne({custom_url:value},(err, res)=>{
-                    res ? reject() : resolve()
+                    res && res.custom_url !== '' ? reject() : resolve()
                 })
             })
         })
