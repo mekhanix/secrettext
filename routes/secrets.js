@@ -5,6 +5,8 @@ const Text = require('../models/Text')
 const bcrypt = require('bcrypt')
 const cron = require('node-cron')
 const validate = require('../utils/validation')
+const jwt = require('jsonwebtoken')
+const jwt_key = require('../config').jwt_key
 const {cron_string} = require('../config')
 
 router.get('/', function(req, res, next) {
@@ -49,7 +51,27 @@ router.post('/', function (req, res, next) {
         .catch((err)=>{throw err})
 })
 
-router.get('/:url', function (req, res, next) {
+function verifyJWT(req, res, next) {
+    const redir = `/secret/${req.params.url}/auth`
+    let token = req.session.token
+    if (token) {
+        jwt.verify(token, jwt_key, function (err, decoded) {
+            if (err) {
+                res.redirect(redir)
+            }
+            else {
+                req.decoded = decoded
+                next()
+            }
+        })
+    }
+    else {
+        res.redirect(redir)
+    }
+    
+}
+
+router.get('/:url', verifyJWT,function (req, res, next) {
     Text.findOne({$or:[ {custom_url:req.params.url}, {url:req.params.url} ]}, function (err, text) {
         if (text != null) {
             var activeUrl = text.custom_url !== '' ? text.custom_url : text.url
@@ -60,7 +82,8 @@ router.get('/:url', function (req, res, next) {
         }
 
         if (err) { throw new Error(err) }
-        if (!req.session.auth || req.session.auth.url !== req.params.url) {
+        
+        if (!req.decoded || req.decoded.url !== req.params.url) {
             return res.redirect(`./${activeUrl}/auth`)
         }
         else {
@@ -78,8 +101,12 @@ router.post('/:url/auth', function (req, res, next) {
     Text.checkURLexists(req.params.url, function (err, text) {
         bcrypt.compare(req.body.pass, text.pass, function(err, result) {
             if (result) {
-                req.session.auth = {url : req.params.url, ip : req.ip}
-                return res.redirect(`/secret/${req.params.url}?auth=true`)
+                const token = jwt.sign({
+                    url:req.params.url
+                }, jwt_key)
+
+                req.session.token = token
+                return res.redirect(`/secret/${req.params.url}`)
             }
             else {
                 res.status(403).send('Forbidden')
