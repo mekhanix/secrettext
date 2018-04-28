@@ -7,6 +7,9 @@
 <div class="container" style="margin-top: 10px; clear: both;">
     <pre style="white-space: pre-line; text-align: left">{{ payload.text }}</pre>
     <div class="pull-right" id="butt">
-        <a href="?edit=true"><button type="button" class="btn btn-warning">Edit</button></a>
+        <form action="" method="get">
+            <input type="hidden" name="edit" value="true">
+            <button type="submit" class="btn btn-warning">Edit</button>
+        </form>
     </div>
 </div>

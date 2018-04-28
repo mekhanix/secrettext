@@ -9,5 +9,6 @@ module.exports = {
         hourtwelve: '0 */12 * * *',
         daily: '0 0 * * *',
         weekly: '0 0 * * 0'
-    }
+    },
+    jwt_key : 'foobar'
 }
